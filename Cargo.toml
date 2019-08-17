@@ -1,0 +1,15 @@
+[package]
+name = "wayland-raw-protocol-bindings"
+version = "0.1.0"
+edition = "2018"
+build = "build.rs"
+
+[dependencies]
+wayland-sys = { version = "0.23", features = ["dlopen", "client", "server", "cursor", "egl" ] }
+libc = "0.2"
+bitflags = "1.0"
+
+[build-dependencies]
+proc-macro2 = "0.4.24"
+quote = "0.6.10"
+xml-rs = ">=0.7, <0.9"
