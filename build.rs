@@ -197,7 +197,7 @@ impl Type {
             Type::Fixed => quote!(wl_fixed_t),
             Type::Array => quote!(*mut wl_array),
             Type::Fd => quote!(::std::os::unix::io::RawFd),
-            Type::String => quote!(&str),
+            Type::String => quote!(*mut c_char),
             Type::Object => quote!(*mut wl_proxy),
             _ => quote!(()),
         }
@@ -926,7 +926,7 @@ fn event_method_prototype(name: &Ident, msg: &Message, side: Side) -> TokenStrea
                 Type::Uint => quote!(u32),
                 Type::Int => quote!(i32),
                 Type::Fixed => quote!(wl_fixed_t),
-                Type::String => quote!(&str),
+                Type::String => quote!(*mut c_char),
                 Type::Array => quote!(*mut wl_array),
                 Type::Fd => quote!(::std::os::unix::io::RawFd),
                 Type::Object => {
@@ -1105,7 +1105,7 @@ fn generate_stubs(interface: &Interface, side: Side) -> TokenStream {
                     Type::Uint => quote!(u32),
                     Type::Int => quote!(i32),
                     Type::Fixed => quote!(wl_fixed_t),
-                    Type::String => quote!(&str),
+                    Type::String => quote!(*mut c_char),
                     Type::Array => quote!(*mut wl_array),
                     Type::Fd => quote!(::std::os::unix::io::RawFd),
                     Type::Object => {
