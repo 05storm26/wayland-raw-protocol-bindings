@@ -1049,11 +1049,29 @@ fn generate_stubs(interface: &Interface, side: Side) -> TokenStream {
         &format!("{}_get_version", interface.name),
         Span::call_site(),
     );
+    
+    let al = Ident::new(
+        &format!("{}_add_listener", interface.name),
+        Span::call_site(),
+    );
+
 
     let mut opcode = 0u32;
     let mut has_destroy = false;
     let interface_ident = Ident::new(&fix_ident(&interface.name), Span::call_site());
     let thisparam = quote!(#interface_ident: *mut super::#interface_ident::#interface_ident);
+
+
+    let add_l_stub = if side == Side::Client {
+        quote! {
+            pub unsafe fn #al(#thisparam, listener: *mut c_void, data: *mut c_void) -> c_int {
+                return ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_add_listener,
+                            #interface_ident as _, listener as _, data as _);
+            }
+        }
+    } else {
+        quote!()
+    };
 
     let stubs = list.iter().map(|msg| {
         let result = match side {
@@ -1212,6 +1230,8 @@ fn generate_stubs(interface: &Interface, side: Side) -> TokenStream {
                             #interface_ident as _);
         }
 
+        #add_l_stub
+
         #simple_desctr
 
         #(#stubs)*
@@ -1239,7 +1259,7 @@ fn generate_code<'a, T: std::clone::Clone + Iterator<Item = &'a Protocol>>(
             quote! {
                 #doc_attr
                 pub mod #mod_name {
-                    use std::os::raw::{c_char, c_void};
+                    use std::os::raw::{c_char, c_void, c_int};
                     use super::super::{types_null, NULLPTR};
                     use super::super::super::sys::common::{wl_interface, wl_array, wl_argument, wl_message, wl_fixed_t};
                     use super::super::super::sys::client::*;
