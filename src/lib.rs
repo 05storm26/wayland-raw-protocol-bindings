@@ -5,11 +5,10 @@
 #![cfg_attr(feature = "cargo-clippy", allow(clippy))]
 
 #[macro_use]
-extern crate wayland_sys as sys;
+pub extern crate wayland_sys as sys;
 
 #[macro_use]
 extern crate bitflags;
-
 
 pub mod client {
     include!(concat!(env!("OUT_DIR"), "/client.rs"));
