@@ -1,0 +1,3 @@
+[submodule "protocols/wayland-protocols"]
+	path = protocols/wayland-protocols
+	url = https://github.com/wayland-project/wayland-protocols.git

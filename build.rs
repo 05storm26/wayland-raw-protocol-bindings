@@ -1,4 +1,3 @@
-
 #![recursion_limit = "128"]
 #![allow(dead_code, non_camel_case_types, unused_unsafe, unused_variables)]
 #![allow(non_upper_case_globals, non_snake_case, unused_imports)]
@@ -237,7 +236,8 @@ macro_rules! extract_end_tag(
 );
 
 pub fn parse_stream<S: Read>(stream: S) -> Protocol {
-    let mut reader = EventReader::new_with_config(stream, ParserConfig::new().trim_whitespace(true));
+    let mut reader =
+        EventReader::new_with_config(stream, ParserConfig::new().trim_whitespace(true));
     reader.next().expect("Could not read from event reader");
     parse_protocol(reader)
 }
@@ -253,12 +253,15 @@ fn parse_protocol<R: Read>(mut reader: EventReader<R>) -> Protocol {
 
     loop {
         match reader.next() {
-            Ok(XmlEvent::StartElement { name, attributes, .. }) => {
+            Ok(XmlEvent::StartElement {
+                name, attributes, ..
+            }) => {
                 match &name.local_name[..] {
                     "copyright" => {
                         // parse the copyright
                         let copyright = match reader.next() {
-                            Ok(XmlEvent::Characters(copyright)) | Ok(XmlEvent::CData(copyright)) => copyright,
+                            Ok(XmlEvent::Characters(copyright))
+                            | Ok(XmlEvent::CData(copyright)) => copyright,
                             e => panic!("Ill-formed protocol file: {:?}", e),
                         };
 
@@ -266,7 +269,9 @@ fn parse_protocol<R: Read>(mut reader: EventReader<R>) -> Protocol {
                         protocol.copyright = Some(copyright);
                     }
                     "interface" => {
-                        protocol.interfaces.push(parse_interface(&mut reader, attributes));
+                        protocol
+                            .interfaces
+                            .push(parse_interface(&mut reader, attributes));
                     }
                     "description" => {
                         protocol.description = Some(parse_description(&mut reader, attributes));
@@ -304,8 +309,12 @@ fn parse_interface<R: Read>(reader: &mut EventReader<R>, attrs: Vec<OwnedAttribu
 
     loop {
         match reader.next() {
-            Ok(XmlEvent::StartElement { name, attributes, .. }) => match &name.local_name[..] {
-                "description" => interface.description = Some(parse_description(reader, attributes)),
+            Ok(XmlEvent::StartElement {
+                name, attributes, ..
+            }) => match &name.local_name[..] {
+                "description" => {
+                    interface.description = Some(parse_description(reader, attributes))
+                }
                 "request" => interface.requests.push(parse_request(reader, attributes)),
                 "event" => interface.events.push(parse_event(reader, attributes)),
                 "enum" => interface.enums.push(parse_enum(reader, attributes)),
@@ -319,7 +328,10 @@ fn parse_interface<R: Read>(reader: &mut EventReader<R>, attrs: Vec<OwnedAttribu
     interface
 }
 
-fn parse_description<R: Read>(reader: &mut EventReader<R>, attrs: Vec<OwnedAttribute>) -> (String, String) {
+fn parse_description<R: Read>(
+    reader: &mut EventReader<R>,
+    attrs: Vec<OwnedAttribute>,
+) -> (String, String) {
     let mut summary = String::new();
     for attr in attrs {
         if &attr.name.local_name[..] == "summary" {
@@ -352,7 +364,9 @@ fn parse_request<R: Read>(reader: &mut EventReader<R>, attrs: Vec<OwnedAttribute
 
     loop {
         match reader.next() {
-            Ok(XmlEvent::StartElement { name, attributes, .. }) => match &name.local_name[..] {
+            Ok(XmlEvent::StartElement {
+                name, attributes, ..
+            }) => match &name.local_name[..] {
                 "description" => request.description = Some(parse_description(reader, attributes)),
                 "arg" => request.args.push(parse_arg(reader, attributes)),
                 _ => panic!("Unexpected tocken: `{}`", name.local_name),
@@ -382,7 +396,9 @@ fn parse_enum<R: Read>(reader: &mut EventReader<R>, attrs: Vec<OwnedAttribute>) 
 
     loop {
         match reader.next() {
-            Ok(XmlEvent::StartElement { name, attributes, .. }) => match &name.local_name[..] {
+            Ok(XmlEvent::StartElement {
+                name, attributes, ..
+            }) => match &name.local_name[..] {
                 "description" => enu.description = Some(parse_description(reader, attributes)),
                 "entry" => enu.entries.push(parse_entry(reader, attributes)),
                 _ => panic!("Unexpected tocken: `{}`", name.local_name),
@@ -407,7 +423,9 @@ fn parse_event<R: Read>(reader: &mut EventReader<R>, attrs: Vec<OwnedAttribute>)
 
     loop {
         match reader.next() {
-            Ok(XmlEvent::StartElement { name, attributes, .. }) => match &name.local_name[..] {
+            Ok(XmlEvent::StartElement {
+                name, attributes, ..
+            }) => match &name.local_name[..] {
                 "description" => event.description = Some(parse_description(reader, attributes)),
                 "arg" => event.args.push(parse_arg(reader, attributes)),
                 _ => panic!("Unexpected tocken: `{}`", name.local_name),
@@ -426,7 +444,9 @@ fn parse_arg<R: Read>(reader: &mut EventReader<R>, attrs: Vec<OwnedAttribute>) -
         match &attr.name.local_name[..] {
             "name" => arg.name = attr.value,
             "type" => arg.typ = parse_type(&attr.value),
-            "summary" => arg.summary = Some(attr.value.split_whitespace().collect::<Vec<_>>().join(" ")),
+            "summary" => {
+                arg.summary = Some(attr.value.split_whitespace().collect::<Vec<_>>().join(" "))
+            }
             "interface" => arg.interface = Some(attr.value),
             "allow-null" => {
                 if attr.value == "true" {
@@ -440,7 +460,9 @@ fn parse_arg<R: Read>(reader: &mut EventReader<R>, attrs: Vec<OwnedAttribute>) -
 
     loop {
         match reader.next() {
-            Ok(XmlEvent::StartElement { name, attributes, .. }) => match &name.local_name[..] {
+            Ok(XmlEvent::StartElement {
+                name, attributes, ..
+            }) => match &name.local_name[..] {
                 "description" => arg.description = Some(parse_description(reader, attributes)),
                 _ => panic!("Unexpected tocken: `{}`", name.local_name),
             },
@@ -480,14 +502,18 @@ fn parse_entry<R: Read>(reader: &mut EventReader<R>, attrs: Vec<OwnedAttribute>)
                 };
             }
             "since" => entry.since = attr.value.parse().unwrap(),
-            "summary" => entry.summary = Some(attr.value.split_whitespace().collect::<Vec<_>>().join(" ")),
+            "summary" => {
+                entry.summary = Some(attr.value.split_whitespace().collect::<Vec<_>>().join(" "))
+            }
             _ => {}
         }
     }
 
     loop {
         match reader.next() {
-            Ok(XmlEvent::StartElement { name, attributes, .. }) => match &name.local_name[..] {
+            Ok(XmlEvent::StartElement {
+                name, attributes, ..
+            }) => match &name.local_name[..] {
                 "description" => entry.description = Some(parse_description(reader, attributes)),
                 _ => panic!("Unexpected tocken: `{}`", name.local_name),
             },
@@ -500,8 +526,12 @@ fn parse_entry<R: Read>(reader: &mut EventReader<R>, attrs: Vec<OwnedAttribute>)
 }
 
 fn load_xml<P: AsRef<Path>>(prot: P) -> Protocol {
-    let pfile = File::open(prot.as_ref())
-        .unwrap_or_else(|_| panic!("Unable to open protocol file `{}`.", prot.as_ref().display()));
+    let pfile = File::open(prot.as_ref()).unwrap_or_else(|_| {
+        panic!(
+            "Unable to open protocol file `{}`.",
+            prot.as_ref().display()
+        )
+    });
     parse_stream(pfile)
 }
 
@@ -524,24 +554,31 @@ pub fn null_terminated_byte_string_literal(string: &str) -> Literal {
     Literal::byte_string(&val)
 }
 
-pub(crate) fn generate_interfaces_prefix(protocol: &Protocol) -> TokenStream {
-    let longest_nulls = protocol.interfaces.iter().fold(0, |max, interface| {
-        let request_longest_null = interface.requests.iter().fold(0, |max, request| {
-            if request.all_null() {
-                cmp::max(request.args.len(), max)
-            } else {
-                max
-            }
-        });
-        let events_longest_null = interface.events.iter().fold(0, |max, event| {
-            if event.all_null() {
-                cmp::max(event.args.len(), max)
-            } else {
-                max
-            }
-        });
-        cmp::max(max, cmp::max(request_longest_null, events_longest_null))
-    });
+pub(crate) fn generate_interfaces_prefix<'a, T: Iterator<Item = &'a Protocol>>(
+    protocols: T,
+) -> TokenStream {
+    let longest_nulls = protocols
+        .map(|protocol| {
+            protocol.interfaces.iter().fold(0, |max, interface| {
+                let request_longest_null = interface.requests.iter().fold(0, |max, request| {
+                    if request.all_null() {
+                        cmp::max(request.args.len(), max)
+                    } else {
+                        max
+                    }
+                });
+                let events_longest_null = interface.events.iter().fold(0, |max, event| {
+                    if event.all_null() {
+                        cmp::max(event.args.len(), max)
+                    } else {
+                        max
+                    }
+                });
+                cmp::max(max, cmp::max(request_longest_null, events_longest_null))
+            })
+        })
+        .max()
+        .unwrap_or(1);
 
     let types_null_len = Literal::usize_unsuffixed(longest_nulls);
 
@@ -612,7 +649,8 @@ fn gen_messages(interface: &Interface, messages: &[Message], which: &str) -> Tok
             let array_values = msg.args.iter().map(|arg| match (arg.typ, &arg.interface) {
                 (Type::Object, &Some(ref inter)) | (Type::NewId, &Some(ref inter)) => {
                     let module = Ident::new(inter, Span::call_site());
-                    let interface_ident = Ident::new(&format!("{}_interface", inter), Span::call_site());
+                    let interface_ident =
+                        Ident::new(&format!("{}_interface", inter), Span::call_site());
                     quote!(unsafe { &super::#module::#interface_ident as *const wl_interface })
                 }
                 _ => quote!(NULLPTR as *const wl_interface),
@@ -626,7 +664,8 @@ fn gen_messages(interface: &Interface, messages: &[Message], which: &str) -> Tok
         }
     });
 
-    let message_array_ident = Ident::new(&format!("{}_{}", interface.name, which), Span::call_site());
+    let message_array_ident =
+        Ident::new(&format!("{}_{}", interface.name, which), Span::call_site());
     let message_array_len = Literal::usize_unsuffixed(messages.len());
     let message_array_values = messages.iter().map(|msg| {
         let name_value = null_terminated_byte_string_literal(&msg.name);
@@ -695,12 +734,13 @@ fn message_signature(msg: &Message) -> Vec<u8> {
 
 pub fn is_keyword(txt: &str) -> bool {
     match txt {
-        "abstract" | "alignof" | "as" | "become" | "box" | "break" | "const" | "continue" | "crate"
-        | "do" | "else" | "enum" | "extern" | "false" | "final" | "fn" | "for" | "if" | "impl" | "in"
-        | "let" | "loop" | "macro" | "match" | "mod" | "move" | "mut" | "offsetof" | "override" | "priv"
-        | "proc" | "pub" | "pure" | "ref" | "return" | "Self" | "self" | "sizeof" | "static" | "struct"
-        | "super" | "trait" | "true" | "type" | "typeof" | "unsafe" | "unsized" | "use" | "virtual"
-        | "where" | "while" | "yield" | "__handler" | "__object" => true,
+        "abstract" | "alignof" | "as" | "become" | "box" | "break" | "const" | "continue"
+        | "crate" | "do" | "else" | "enum" | "extern" | "false" | "final" | "fn" | "for" | "if"
+        | "impl" | "in" | "let" | "loop" | "macro" | "match" | "mod" | "move" | "mut"
+        | "offsetof" | "override" | "priv" | "proc" | "pub" | "pure" | "ref" | "return"
+        | "Self" | "self" | "sizeof" | "static" | "struct" | "super" | "trait" | "true"
+        | "type" | "typeof" | "unsafe" | "unsized" | "use" | "virtual" | "where" | "while"
+        | "yield" | "__handler" | "__object" => true,
         _ => false,
     }
 }
@@ -842,23 +882,26 @@ impl ToTokens for Enum {
     }
 }
 
-
 pub fn dotted_to_relname(input: &str) -> TokenStream {
     let mut it = input.split('.');
     match (it.next(), it.next()) {
         (Some(module), Some(name)) => {
             let module = Ident::new(module, Span::call_site());
-            let ident = Ident::new(name, Span::call_site());
+            let ident = Ident::new(&fix_ident(name), Span::call_site());
             quote!(super::#module::#ident)
         }
-        (Some(name), None) => Ident::new(name, Span::call_site()).into_token_stream(),
+        (Some(name), None) => Ident::new(&fix_ident(name), Span::call_site()).into_token_stream(),
         _ => unreachable!(),
     }
 }
 
 fn event_method_prototype(name: &Ident, msg: &Message, side: Side) -> TokenStream {
     let method_name = Ident::new(
-        &format!("{}{}", if is_keyword(&msg.name) { "_" } else { "" }, msg.name),
+        &format!(
+            "{}{}",
+            if is_keyword(&msg.name) { "_" } else { "" },
+            msg.name
+        ),
         Span::call_site(),
     );
 
@@ -933,7 +976,11 @@ pub enum Side {
     Server,
 }
 
-pub(crate) fn gen_event_handler_trait(iname: &Ident, messages: &[Message], side: Side) -> TokenStream {
+pub(crate) fn gen_event_handler_trait(
+    iname: &Ident,
+    messages: &[Message],
+    side: Side,
+) -> TokenStream {
     let methods = messages.iter().map(|msg| {
         let mut docs = String::new();
         if let Some((ref short, ref long)) = msg.description {
@@ -956,7 +1003,15 @@ pub(crate) fn gen_event_handler_trait(iname: &Ident, messages: &[Message], side:
     });
 
     let method_name = Ident::new(
-        &format!("{}_{}", iname,  if side == Side::Server { "interface" } else { "listener" }),
+        &format!(
+            "{}_{}",
+            iname,
+            if side == Side::Server {
+                "interface"
+            } else {
+                "listener"
+            }
+        ),
         Span::call_site(),
     );
     match side {
@@ -976,12 +1031,25 @@ pub(crate) fn gen_event_handler_trait(iname: &Ident, messages: &[Message], side:
 }
 
 fn generate_stubs(interface: &Interface, side: Side) -> TokenStream {
-    let list = if side == Side::Client { &interface.requests } else { &interface.events };
+    let list = if side == Side::Client {
+        &interface.requests
+    } else {
+        &interface.events
+    };
 
-    let sud = Ident::new(&format!("{}_set_user_data", interface.name), Span::call_site());
-    let gud = Ident::new(&format!("{}_get_user_data", interface.name), Span::call_site());
-    let gv = Ident::new(&format!("{}_get_version", interface.name), Span::call_site());
-    
+    let sud = Ident::new(
+        &format!("{}_set_user_data", interface.name),
+        Span::call_site(),
+    );
+    let gud = Ident::new(
+        &format!("{}_get_user_data", interface.name),
+        Span::call_site(),
+    );
+    let gv = Ident::new(
+        &format!("{}_get_version", interface.name),
+        Span::call_site(),
+    );
+
     let mut opcode = 0u32;
     let mut has_destroy = false;
     let interface_ident = Ident::new(&fix_ident(&interface.name), Span::call_site());
@@ -1036,20 +1104,20 @@ fn generate_stubs(interface: &Interface, side: Side) -> TokenStream {
 
             let paramlist = argsv.iter().filter(|o| {o.is_some()}).map(|o|{o.as_ref().unwrap().clone()}).map(|pair| {let n = &pair.0; let t = &pair.1; quote!(#n: #t)});
             let param_name_list = argsv.iter()
-            .map(|o| 
+            .map(|o|
             {
                 if let Some(pair) = o {
                     if !pair.2 {
-                        let n = &pair.0; 
-                        quote!(#n) 
+                        let n = &pair.0;
+                        quote!(#n)
                     } else {
-                        quote!( (*interface).name, version, std::ptr::null::<c_void>() ) 
-                    } 
+                        quote!( (*interface).name, version, std::ptr::null::<c_void>() )
+                    }
                 } else {
-                    quote!(std::ptr::null::<c_void>() ) 
+                    quote!(std::ptr::null::<c_void>() )
                 }
             });
-            
+
             let args = std::iter::once(thisparam.clone())
                 .chain(paramlist);
 
@@ -1058,14 +1126,14 @@ fn generate_stubs(interface: &Interface, side: Side) -> TokenStream {
             }
 
             let destroy_end = if msg.typ == Some(Type::Destructor) {
-                    quote!(ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_destroy, 
+                    quote!(ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_destroy,
                             #interface_ident as _);)
                 } else {quote!()};
-                
+
             let func = if returnNewType {
                 quote! {
                     pub unsafe fn #name(#(#args),*) -> *mut wl_proxy {
-                        let r = ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_marshal_constructor_versioned, 
+                        let r = ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_marshal_constructor_versioned,
                             #interface_ident as _, #opcode, interface as _, version #(,#param_name_list)* );
 
                         #destroy_end
@@ -1079,20 +1147,19 @@ fn generate_stubs(interface: &Interface, side: Side) -> TokenStream {
                 let iface_name = Ident::new(&format!("{}_{}", &iface, "interface"), Span::call_site());
                 quote! {
                     pub unsafe fn #name(#(#args),*) -> *mut super::#iface_mod::#iface_type {
-                        let r = ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_marshal_constructor, 
+                        let r = ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_marshal_constructor,
                             #interface_ident as _, #opcode, &super::#iface_mod::#iface_name as * const _ #(,#param_name_list)* );
 
                         #destroy_end
-                        
+
                         return r as _;
                     }
                 }
-            }  
+            }
             else {
-                
                 quote! {
                     pub unsafe fn #name(#(#args),*) {
-                        ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_marshal, 
+                        ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_marshal,
                             #interface_ident as _, #opcode #(,#param_name_list)*, std::ptr::null::<c_void>() );
 
                         #destroy_end
@@ -1115,28 +1182,33 @@ fn generate_stubs(interface: &Interface, side: Side) -> TokenStream {
     }).collect::<Vec<_>>();
 
     let simple_desctr = if !has_destroy && interface.name != "wl_display" {
-        let dname = Ident::new(&format!("{}_{}", interface.name, "destroy"), Span::call_site());
-        quote!{
+        let dname = Ident::new(
+            &format!("{}_{}", interface.name, "destroy"),
+            Span::call_site(),
+        );
+        quote! {
             pub unsafe fn #dname(#thisparam) {
-                ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_destroy, 
+                ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_destroy,
                                 #interface_ident as _);
             }
         }
-    } else {quote!()};
+    } else {
+        quote!()
+    };
 
     quote! {
         pub unsafe fn #sud(#thisparam, user_data: *mut c_void) {
-            ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_set_user_data, 
+            ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_set_user_data,
                             #interface_ident as _, user_data);
         }
 
         pub unsafe fn #gud(#thisparam) -> * mut c_void {
-            return ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_get_user_data, 
+            return ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_get_user_data,
                             #interface_ident as _);
         }
 
-        pub unsafe fn #gv(#thisparam) -> u32 {  
-            return ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_get_version, 
+        pub unsafe fn #gv(#thisparam) -> u32 {
+            return ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_get_version,
                             #interface_ident as _);
         }
 
@@ -1146,15 +1218,118 @@ fn generate_stubs(interface: &Interface, side: Side) -> TokenStream {
     }
 }
 
+fn generate_code<'a, T: std::clone::Clone + Iterator<Item = &'a Protocol>>(
+    protocols: T,
+) -> TokenStream {
+    let modules = protocols.clone().flat_map(|protocol| {
+        let pname = Ident::new(&protocol.name, Span::call_site());
+
+        let interfaces_code = protocol.interfaces.iter().map(move |iface| {
+            let doc_attr = iface.description.as_ref().map(description_to_doc_attr);
+            let mod_name = Ident::new(&iface.name, Span::call_site());
+            let iface_name = Ident::new(&iface.name, Span::call_site());
+
+            let enums = &iface.enums;
+
+            let event_handler_trait = gen_event_handler_trait(&iface_name, &iface.events, Side::Client);
+            let interface = generate_interface(&iface);
+
+            let stubs = generate_stubs(&iface, Side::Client);
+
+            quote! {
+                #doc_attr
+                pub mod #mod_name {
+                    use std::os::raw::{c_char, c_void};
+                    use super::super::{types_null, NULLPTR};
+                    use super::super::super::sys::common::{wl_interface, wl_array, wl_argument, wl_message, wl_fixed_t};
+                    use super::super::super::sys::client::*;
+
+
+                    pub enum #iface_name {}
+
+                    #(#enums)*
+
+                    #interface
+
+                    #event_handler_trait
+
+                    #stubs
+                }
+            }
+        });
+
+
+
+        if protocol.name == "wayland" {
+            quote! {
+                pub mod #pname {
+                    #(#interfaces_code)*
+                }
+            }
+        }
+        else { 
+            let mut generic_stable_protocols = vec!["xdg_shell"];
+            generic_stable_protocols.retain(|i| *i!=protocol.name);
+            let generic_includes = generic_stable_protocols.iter().map(|name| {let iname = Ident::new(name, Span::call_site()); quote!(use super::#iname::*;)});
+            quote!{
+                pub mod #pname {
+                    use super::wayland::*;
+                    #(#generic_includes)*
+                    #(#interfaces_code)*
+                }
+            }
+        }
+    });
+
+    let c_prefix = generate_interfaces_prefix(protocols);
+
+    quote! {
+        #c_prefix
+
+
+        #(#modules)*
+    }
+}
+
+use std::fs::*;
+use std::path::PathBuf;
+
+fn get_protocol_files<T: AsRef<Path>>(path: T) -> Vec<PathBuf> {
+    let mut result: Vec<PathBuf> = vec![];
+
+    for i in read_dir(path).unwrap() {
+        let e = i.unwrap();
+        let meta = e.metadata().unwrap();
+
+        if (meta.is_dir()) {
+            result.append(&mut get_protocol_files(e.path()));
+        } else if meta.is_file()
+            && e.path().extension().is_some()
+            && e.path().extension().unwrap() == "xml"
+        {
+            result.push(e.path().clone());
+        }
+    }
+
+    return result;
+}
+
+fn get_protocols<T: AsRef<Path>>(path: T) -> Vec<Protocol> {
+    get_protocol_files(path)
+        .iter()
+        .map(|f| {
+            println!("cargo:rerun-if-changed={}", f.as_path().display());
+            load_xml(f)
+        })
+        .collect()
+}
+
 fn main() {
-    let protocol_file = "./wayland.xml";
+    let protocols = get_protocols("./protocols");
 
     let out_dir_str = var("OUT_DIR").unwrap();
     let out_dir = Path::new(&out_dir_str);
 
-    println!("cargo:rerun-if-changed={}", protocol_file);
-
-    let mut protocol = load_xml(protocol_file);
     let mut target = out_dir.join("client.rs");
 
     let mut out = OpenOptions::new()
@@ -1164,49 +1339,9 @@ fn main() {
         .open(&target)
         .unwrap();
 
-    let modules = protocol.interfaces.iter().map(|iface| {
-        let doc_attr = iface.description.as_ref().map(description_to_doc_attr);
-        let mod_name = Ident::new(&iface.name, Span::call_site());
-        let iface_name = Ident::new(&iface.name, Span::call_site());
-    
-        let enums = &iface.enums;
+    let code = generate_code(protocols.iter());
 
-        let event_handler_trait = gen_event_handler_trait(&iface_name, &iface.events, Side::Client);
-        let interface = generate_interface(&iface);
-
-        let stubs = generate_stubs(&iface, Side::Client);
-
-        quote! {
-            #doc_attr
-            pub mod #mod_name {
-                use std::os::raw::{c_char, c_void};
-                use super::{types_null, NULLPTR};
-                use super::super::sys::common::{wl_interface, wl_array, wl_argument, wl_message, wl_fixed_t};
-                use super::super::sys::client::*;
-
-
-                pub enum #iface_name {}
-                
-                #(#enums)*
-                
-                #interface
-
-                #event_handler_trait
-
-                #stubs
-            }
-        }
-    });
-
-
-    let c_prefix = generate_interfaces_prefix(&protocol);
-
-    write!(&mut out, "{}", quote! {
-        #c_prefix
-
-
-        #(#modules)*
-    }).unwrap();
+    write!(&mut out, "{}", code).unwrap();
 
     let _ = Command::new("rustfmt").arg(&target).status();
 }
