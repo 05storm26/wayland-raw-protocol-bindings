@@ -3,6 +3,12 @@ name = "wayland-raw-protocol-bindings"
 version = "0.1.0"
 edition = "2018"
 build = "build.rs"
+authors = [ "zlnpgtdtfezf <zlnpgtdtfezf@gmail.com>" ]
+license = "MIT"
+description = "c like wayland bindings"
+homepage = "https://github.com/zlnpgtdtfezf/wayland-raw-protocol-bindings"
+documentation = "https://docs.rs/wayland-raw-protocol-bindings"
+repository = "https://github.com/zlnpgtdtfezf/wayland-raw-protocol-bindings"
 
 [dependencies]
 wayland-sys = { version = "0.23", features = ["dlopen", "client", "server", "cursor", "egl" ] }
