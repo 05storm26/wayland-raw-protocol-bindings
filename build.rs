@@ -1055,6 +1055,16 @@ fn generate_stubs(interface: &Interface, side: Side) -> TokenStream {
         Span::call_site(),
     );
 
+    let arl = Ident::new(
+        &format!("{}_add_rust_listener", interface.name),
+        Span::call_site(),
+    );
+
+     let lt = Ident::new(
+        &format!("{}_listener", interface.name),
+        Span::call_site(),
+    );
+
 
     let mut opcode = 0u32;
     let mut has_destroy = false;
@@ -1067,6 +1077,13 @@ fn generate_stubs(interface: &Interface, side: Side) -> TokenStream {
             pub unsafe fn #al(#thisparam, listener: *mut c_void, data: *mut c_void) -> c_int {
                 return ffi_dispatch!(WAYLAND_CLIENT_HANDLE, wl_proxy_add_listener,
                             #interface_ident as _, listener as _, data as _);
+            }
+
+            pub unsafe fn #arl(#thisparam, listener: & dyn #lt) -> bool {
+                let to : std::raw::TraitObject = std::mem::transmute(listener);
+                let op = to.data;
+                let fp = std::mem::transmute::<_, *mut c_void>(std::mem::transmute::<_, usize>(to.vtable) + (3* std::mem::size_of::<usize>()) );
+                return #al(#interface_ident as _, fp as _, op as _) == 0;
             }
         }
     } else {
@@ -1321,7 +1338,7 @@ fn get_protocol_files<T: AsRef<Path>>(path: T) -> Vec<PathBuf> {
         let e = i.unwrap();
         let meta = e.metadata().unwrap();
 
-        if (meta.is_dir()) {
+        if meta.is_dir() {
             result.append(&mut get_protocol_files(e.path()));
         } else if meta.is_file()
             && e.path().extension().is_some()
@@ -1350,7 +1367,7 @@ fn main() {
     let out_dir_str = var("OUT_DIR").unwrap();
     let out_dir = Path::new(&out_dir_str);
 
-    let mut target = out_dir.join("client.rs");
+    let target = out_dir.join("client.rs");
 
     let mut out = OpenOptions::new()
         .write(true)
