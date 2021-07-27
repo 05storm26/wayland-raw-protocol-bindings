@@ -1105,7 +1105,7 @@ fn generate_stubs(interface: &Interface, side: Side) -> TokenStream {
                     Type::Uint => quote!(u32),
                     Type::Int => quote!(i32),
                     Type::Fixed => quote!(wl_fixed_t),
-                    Type::String => quote!(*mut c_char),
+                    Type::String => quote!(*const c_char),
                     Type::Array => quote!(*mut wl_array),
                     Type::Fd => quote!(::std::os::unix::io::RawFd),
                     Type::Object => {
