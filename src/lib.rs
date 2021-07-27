@@ -1,4 +1,4 @@
-#![feature(raw)]
+#![feature(ptr_metadata)]
 
 #![allow(dead_code, non_camel_case_types, unused_unsafe, unused_variables)]
 #![allow(non_upper_case_globals, non_snake_case, unused_imports)]

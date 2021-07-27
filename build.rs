@@ -1080,9 +1080,9 @@ fn generate_stubs(interface: &Interface, side: Side) -> TokenStream {
             }
 
             pub unsafe fn #arl(#thisparam, listener: & dyn #lt) -> bool {
-                let to : std::raw::TraitObject = std::mem::transmute(listener);
-                let op = to.data;
-                let fp = std::mem::transmute::<_, *mut c_void>(std::mem::transmute::<_, usize>(to.vtable) + (3* std::mem::size_of::<usize>()) );
+                let to = (listener as *const dyn #lt).to_raw_parts();
+                let op = to.0;
+                let fp = std::mem::transmute::<_, *mut c_void>(std::mem::transmute::<_, usize>(to.1) + (3 * std::mem::size_of::<usize>()) );
                 return #al(#interface_ident as _, fp as _, op as _) == 0;
             }
         }
