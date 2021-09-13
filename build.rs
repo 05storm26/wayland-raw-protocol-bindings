@@ -1281,7 +1281,6 @@ fn generate_code<'a, T: std::clone::Clone + Iterator<Item = &'a Protocol>>(
                     use super::super::super::sys::common::{wl_interface, wl_array, wl_argument, wl_message, wl_fixed_t};
                     use super::super::super::sys::client::*;
 
-
                     pub enum #iface_name {}
 
                     #(#enums)*
@@ -1305,7 +1304,7 @@ fn generate_code<'a, T: std::clone::Clone + Iterator<Item = &'a Protocol>>(
             }
         }
         else { 
-            let mut generic_stable_protocols = vec!["xdg_shell"];
+            let mut generic_stable_protocols = vec!["xdg_shell", "org_kde_kwin_outputdevice", "kde_output_device_v2"];
             generic_stable_protocols.retain(|i| *i!=protocol.name);
             let generic_includes = generic_stable_protocols.iter().map(|name| {let iname = Ident::new(name, Span::call_site()); quote!(use super::#iname::*;)});
             quote!{
@@ -1354,10 +1353,19 @@ fn get_protocol_files<T: AsRef<Path>>(path: T) -> Vec<PathBuf> {
 fn get_protocols<T: AsRef<Path>>(path: T) -> Vec<Protocol> {
     get_protocol_files(path)
         .iter()
-        .map(|f| {
+        .flat_map(|f| {
             println!("cargo:rerun-if-changed={}", f.as_path().display());
-            load_xml(f)
+            std::panic::catch_unwind(|| load_xml(f)).ok()
         })
+        .fold(std::collections::HashMap::<String, Protocol>::new(), |mut pmap, protocol| {
+            if pmap.get(&protocol.name).is_none() {
+                pmap.insert(protocol.name.clone(), protocol.clone());
+            }
+
+            pmap
+        })
+        .values()
+        .cloned()
         .collect()
 }
 

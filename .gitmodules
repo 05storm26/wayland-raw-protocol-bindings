@@ -1,3 +1,6 @@
 [submodule "protocols/wayland-protocols"]
 	path = protocols/wayland-protocols
 	url = https://github.com/wayland-project/wayland-protocols.git
+[submodule "protocols/plasma-wayland-protocols"]
+	path = protocols/plasma-wayland-protocols
+	url = git@github.com:KDE/plasma-wayland-protocols.git
